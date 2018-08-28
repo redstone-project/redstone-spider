@@ -32,6 +32,12 @@ class RedstoneSpiderApplication(object):
         # 服务端的结果队列，用于传递爬取结果给服务端
         self.result_queue: stomp.StompConnection11 = None
 
+        # 普通的爬虫引擎
+        self.normal_spider_engine = None
+
+        # 基于chrome headless的爬虫引擎
+        self.chrome_spider_engine = None
+
     def __connect_queue(self):
         """
         连接到服务端的任务队列和结果队列
@@ -66,5 +72,6 @@ class RedstoneSpiderApplication(object):
             return False
 
         # 初始化爬虫线程池
+
 
         return True
