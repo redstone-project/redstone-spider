@@ -25,3 +25,14 @@ print("BASE_DIR: " + BASE_DIR)
 LOG_TO_FILE = True
 LOG_FILENAME = "redstone-spider.log"
 LOG_PATH = os.path.join(BASE_DIR, "logs")
+
+# 服务端队列信息设置
+ACTIVEMQ_HOST = "127.0.0.1"
+ACTIVEMQ_PORT = "61613"
+ACTIVEMQ_USERNAME = "redstone"
+ACTIVEMQ_PASSWORD = "123456"
+
+# 任务队列名称
+ACTIVEMQ_TASK_QUEUE_NAME = "redstone.refresh_task"
+# 存储结果的队列名称
+ACTIVEMQ_RESULT_QUEUE_NAME = "redstone.spider_result_task"

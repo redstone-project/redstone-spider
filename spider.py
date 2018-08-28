@@ -18,10 +18,15 @@ import sys
 import traceback
 
 from redstone.utils.log import logger
+from redstone.core import data as gdata
+from redstone.core.application import RedstoneSpiderApplication
 
 
 def main():
     logger.info("Staring redstone-spider module...")
+    gdata.RS_SPIDER_APP = RedstoneSpiderApplication()
+    if not gdata.RS_SPIDER_APP.start():
+        logger.fatal("Error when starting RS_SPIDER_APP!")
 
 
 if __name__ == '__main__':
