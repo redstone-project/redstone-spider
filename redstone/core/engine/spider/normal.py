@@ -14,10 +14,15 @@
 """
 
 from ..base import MultiCoroutineBaseEngine
+from redstone.utils.log import logger
 
 
 class NormalSpiderEngine(MultiCoroutineBaseEngine):
 
-    def __worker(self):
-        pass
+    def __init__(self):
+        super(NormalSpiderEngine, self).__init__()
+        self.name = "NormalSpiderEngine"
 
+    def _worker(self):
+        logger.debug("{} start!".format(self.name))
+        logger.debug("{} end!".format(self.name))

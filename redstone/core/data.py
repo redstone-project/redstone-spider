@@ -12,6 +12,8 @@
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
 
+from __future__ import annotations
+
 from .application import RedstoneSpiderApplication
 
 

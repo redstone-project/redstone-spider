@@ -13,9 +13,17 @@
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
 
+from __future__ import annotations
+
+import sys, traceback
+
+from stomp.exception import StompException
+
 from .. import settings
 from ..utils.log import logger
 from ..utils.activemq import ActiveMQQueue
+
+from redstone.core.engine.spider import NormalSpiderEngine
 
 
 class RedstoneSpiderApplication(object):
@@ -35,7 +43,7 @@ class RedstoneSpiderApplication(object):
         self.result_queue: ActiveMQQueue = None
 
         # 普通的爬虫引擎
-        self.normal_spider_engine = None
+        self.normal_spider_engine: NormalSpiderEngine = None
 
         # 基于chrome headless的爬虫引擎
         self.chrome_spider_engine = None
@@ -48,6 +56,7 @@ class RedstoneSpiderApplication(object):
         """
         try:
             # 连接任务队列
+            # todo：改掉这种连接方式，否则后面扩展的时候，每增加一个队列/任务类型，都需要变动这里
             self.normal_task_queue = ActiveMQQueue(
                 (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
                 settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
@@ -68,8 +77,12 @@ class RedstoneSpiderApplication(object):
 
             logger.info("Connect to remote ActiveMQ queue success!")
             return True
-        except Exception as e:
-            logger.error("Error when connect to remote ActiveMQ queue! Error: {}".format(e))
+        except StompException:
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            tbe = traceback.TracebackException(exc_type, exc_value, exc_tb)
+            full_err = ''.join(tbe.format())
+            logger.error("Error when connect to remote ActiveMQ queue! Full error below:\n{}".format(full_err))
+            logger.error("Maybe username/password invalid!")
             return False
 
     def start(self) -> bool:
@@ -83,4 +96,6 @@ class RedstoneSpiderApplication(object):
             return False
 
         # 初始化爬虫线程池
+        self.normal_spider_engine = NormalSpiderEngine()
+        self.normal_spider_engine.start()
         return True
