@@ -13,10 +13,9 @@
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
 
-import stomp
-
 from .. import settings
 from ..utils.log import logger
+from ..utils.activemq import ActiveMQQueue
 
 
 class RedstoneSpiderApplication(object):
@@ -26,11 +25,14 @@ class RedstoneSpiderApplication(object):
     def __init__(self):
         super(RedstoneSpiderApplication, self).__init__()
 
-        # 服务端的任务队列，用于获取爬虫任务
-        self.task_queue: stomp.StompConnection11 = None
+        # 普通爬虫任务队列
+        self.normal_task_queue: ActiveMQQueue = None
+
+        # chrome爬虫任务队列
+        self.chrome_task_queue: ActiveMQQueue = None
 
         # 服务端的结果队列，用于传递爬取结果给服务端
-        self.result_queue: stomp.StompConnection11 = None
+        self.result_queue: ActiveMQQueue = None
 
         # 普通的爬虫引擎
         self.normal_spider_engine = None
@@ -46,14 +48,23 @@ class RedstoneSpiderApplication(object):
         """
         try:
             # 连接任务队列
-            self.task_queue = stomp.Connection([(settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT))])
-            self.task_queue.start()
-            self.task_queue.connect(settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD, wait=True)
+            self.normal_task_queue = ActiveMQQueue(
+                (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
+                settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
+                settings.ACTIVEMQ_QUEUES.get("task_normal")
+            )
 
-            # 连接结果队列
-            self.result_queue = stomp.Connection([(settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT))])
-            self.result_queue.start()
-            self.result_queue.connect(settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD, wait=True)
+            self.chrome_task_queue = ActiveMQQueue(
+                (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
+                settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
+                settings.ACTIVEMQ_QUEUES.get("task_chrome")
+            )
+
+            self.result_queue = ActiveMQQueue(
+                (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
+                settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
+                settings.ACTIVEMQ_QUEUES.get("result_spider")
+            )
 
             logger.info("Connect to remote ActiveMQ queue success!")
             return True
@@ -72,6 +83,4 @@ class RedstoneSpiderApplication(object):
             return False
 
         # 初始化爬虫线程池
-
-
         return True
