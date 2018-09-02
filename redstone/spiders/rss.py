@@ -11,3 +11,11 @@
     :license:   GPL-3.0, see LICENSE for more details.
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
+
+
+class RSSSpider(object):
+    pass
+
+
+def get_class():
+    return RSSSpider

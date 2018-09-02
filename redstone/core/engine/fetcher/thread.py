@@ -68,9 +68,11 @@ class AgentListener(stomp.ConnectionListener):
 
 class ThreadFetchAgent(MultiThreadBaseEngine):
 
-    def __init__(self):
+    def __init__(self, app_context):
         super(ThreadFetchAgent, self).__init__()
         self.name = "ThreadFetcher"
+
+        self.app_context = app_context
 
         self.task_queues: List[ActiveMQQueue] = None
 

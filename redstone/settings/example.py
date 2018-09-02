@@ -26,6 +26,9 @@ LOG_TO_FILE = True
 LOG_FILENAME = "redstone-spider.log"
 LOG_PATH = os.path.join(BASE_DIR, "logs")
 
+# 爬虫加载设置
+SPIDER_HOT_LOAD_IDLE = 30
+
 # 服务端队列信息设置
 ACTIVEMQ_HOST = "127.0.0.1"
 ACTIVEMQ_PORT = "61613"

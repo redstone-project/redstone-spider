@@ -116,3 +116,41 @@ class MultiThreadBaseEngine(CommonBaseEngine):
     @abc.abstractmethod
     def _worker(self):
         pass
+
+
+class SingleThreadBaseEngine(CommonBaseEngine):
+    """
+    基于单线程的BaseEngine
+    """
+
+    def __init__(self):
+        super(SingleThreadBaseEngine, self).__init__()
+
+        # engine名称
+        self.name = "default-single-thread-engine"
+
+        # 工作线程
+        self.thread: threading.Thread = None
+
+        # App 上下文
+        self.app_context: RedstoneSpiderApplication = None
+
+        # 结束标志、engine状态
+        self.ev = threading.Event()
+        self.status = self.EngineStatus.STATUS_READY
+
+    def start(self):
+        self.status = self.EngineStatus.STATUS_RUNNING
+        self.thread = threading.Thread(target=self._worker, name=self.name)
+        self.thread.start()
+
+    def stop(self):
+        self.status = self.EngineStatus.STATUS_STOP
+        self.ev.set()
+
+    def is_alive(self):
+        return self.thread.is_alive()
+
+    @abc.abstractmethod
+    def _worker(self):
+        pass

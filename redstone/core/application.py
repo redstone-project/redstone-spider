@@ -18,6 +18,7 @@ from __future__ import annotations
 from ..utils.log import logger
 from ..utils.activemq import ActiveMQQueue
 from redstone.core.engine.fetcher import ThreadFetchAgent
+from redstone.core.loader import SpiderLoader
 
 
 class RedstoneSpiderApplication(object):
@@ -29,6 +30,9 @@ class RedstoneSpiderApplication(object):
     class AppEngines:
         # 基于线程的FetchAgent
         THREAD_FETCH_AGENT: ThreadFetchAgent = None
+
+        # spider loader
+        SPIDER_LOADER: SpiderLoader = None
 
     def exit_signal_func(self):
         pass
@@ -50,8 +54,12 @@ class RedstoneSpiderApplication(object):
 
         logger.info("Starting RedstoneSpiderApplication!")
 
+        # 初始化爬虫加载器
+        self.AppEngines.SPIDER_LOADER = SpiderLoader()
+        self.AppEngines.SPIDER_LOADER.start()
+
         # 初始化爬虫线程池
-        self.AppEngines.THREAD_FETCH_AGENT = ThreadFetchAgent()
-        self.AppEngines.THREAD_FETCH_AGENT.start()
+        # self.AppEngines.THREAD_FETCH_AGENT = ThreadFetchAgent(app_context=self)
+        # self.AppEngines.THREAD_FETCH_AGENT.start()
 
         return True
