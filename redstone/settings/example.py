@@ -34,12 +34,8 @@ ACTIVEMQ_PASSWORD = "123456"
 
 # 任务队列名称
 ACTIVEMQ_QUEUES = {
-    # 普通爬虫任务队列的名称
-    "task_normal": "redstone.task.normal",
-
-    # chrome爬虫任务队列的名称
-    "task_chrome": "redstone.task.chrome",
-
+    "coroutine_task": "redstone.coroutine.task",
+    "thread_task": "redstone.thread.task",
     # 返回爬虫结果的队列名称
     "result_spider": "redstone.result.spider_result",
 }

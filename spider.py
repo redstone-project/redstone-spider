@@ -28,6 +28,9 @@ def main():
     if not gdata.RS_SPIDER_APP.start():
         logger.fatal("Error when starting RS_SPIDER_APP!")
 
+    while True:
+        time.sleep(1)
+
 
 if __name__ == '__main__':
     try:

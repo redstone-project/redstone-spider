@@ -5,3 +5,13 @@ SPIDER_TASK -> JSON:
     - Spider Name
     - Spider Class (pickle + base64)
     - spider run mode (thread or coroutine)
+
+
+message = {
+    "feed_name": "",
+    "feed_url": "",
+    "feed_id": "",
+    "spider_name": "",
+    "spider_class": "",
+    "spider_run_mode": "",
+}

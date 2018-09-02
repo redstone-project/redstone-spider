@@ -23,7 +23,7 @@ class ActiveMQQueue(object):
     封装过的一层ActiveMQ，集成了常用操作
     """
 
-    def __init__(self, target: Tuple[str, int], username, password, queue_name, auto_connect=True):
+    def __init__(self, target: Tuple[str, int], username, password, queue_name):
         super(ActiveMQQueue, self).__init__()
         self._target = target
         self._username = username
@@ -32,13 +32,15 @@ class ActiveMQQueue(object):
         self.queue_name = queue_name
         self.queue: stomp.StompConnection11 = None
 
-        if auto_connect:
-            self.connect()
-
     def connect(self):
         self.queue = stomp.Connection([self._target])
-        self.queue.start()
         self.queue.connect(self._username, self._password, wait=True)
+
+    def set_listener(self, name, listener):
+        self.queue.set_listener(name, listener)
+
+    def subscribe(self, idx):
+        self.queue.subscribe(self.queue_name, idx, "client")
 
     def close(self):
         if self.queue:

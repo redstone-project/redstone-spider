@@ -15,7 +15,8 @@
 
 from __future__ import annotations
 
-import sys, traceback
+import sys
+import traceback
 
 from stomp.exception import StompException
 
@@ -91,11 +92,11 @@ class RedstoneSpiderApplication(object):
         :return: True-启动成功，False-启动失败
         :rtype: bool
         """
-        # 连接到远程队列
-        if not self.__connect_queue():
-            return False
+
+        # 设置CTRL+C的信号
 
         # 初始化爬虫线程池
         self.normal_spider_engine = NormalSpiderEngine()
         self.normal_spider_engine.start()
+
         return True
