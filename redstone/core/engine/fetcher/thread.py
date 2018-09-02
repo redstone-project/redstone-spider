@@ -49,7 +49,18 @@ class AgentListener(stomp.ConnectionListener):
 
         # 解析消息内容
         message = json.loads(body)
-        url = message["feed_url"]
+        feed_url = message["feed_url"]
+        feed_name = message["feed_name"]
+        feed_id = message["feed_id"]
+        spider_name = message["spider_name"]    # use this to load spider class
+
+        # 加载爬虫类
+        # spider_cls = SpiderLoader.get_clz_by_name(spider_name)
+        # spider_instance = spider_cls()
+        # result = spider_instance.run()
+
+        # make_ack()
+        return True
 
     def on_error(self, headers, body):
         pass

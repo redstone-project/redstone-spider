@@ -15,11 +15,12 @@
 """
 
 import sys
+import time
 import traceback
 
-from redstone.utils.log import logger
 from redstone.core import data as gdata
 from redstone.core.application import RedstoneSpiderApplication
+from redstone.utils.log import logger
 
 
 def main():
@@ -28,6 +29,7 @@ def main():
     if not gdata.RS_SPIDER_APP.start():
         logger.fatal("Error when starting RS_SPIDER_APP!")
 
+    # 主线程保活，直到收到CTRL+C信号
     while True:
         time.sleep(1)
 

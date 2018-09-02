@@ -15,76 +15,31 @@
 
 from __future__ import annotations
 
-import sys
-import traceback
-
-from stomp.exception import StompException
-
-from .. import settings
 from ..utils.log import logger
 from ..utils.activemq import ActiveMQQueue
-
-from redstone.core.engine.spider import NormalSpiderEngine
+from redstone.core.engine.fetcher import ThreadFetchAgent
 
 
 class RedstoneSpiderApplication(object):
     """
     代表整个爬虫App
     """
+
+    # 内部类，存储所有的Engine
+    class AppEngines:
+        # 基于线程的FetchAgent
+        THREAD_FETCH_AGENT: ThreadFetchAgent = None
+
+    def exit_signal_func(self):
+        pass
+
     def __init__(self):
         super(RedstoneSpiderApplication, self).__init__()
-
-        # 普通爬虫任务队列
-        self.normal_task_queue: ActiveMQQueue = None
-
-        # chrome爬虫任务队列
-        self.chrome_task_queue: ActiveMQQueue = None
 
         # 服务端的结果队列，用于传递爬取结果给服务端
         self.result_queue: ActiveMQQueue = None
 
-        # 普通的爬虫引擎
-        self.normal_spider_engine: NormalSpiderEngine = None
-
-        # 基于chrome headless的爬虫引擎
-        self.chrome_spider_engine = None
-
-    def __connect_queue(self):
-        """
-        连接到服务端的任务队列和结果队列
-        :return: True-连接成功，False-连接失败
-        :type: bool
-        """
-        try:
-            # 连接任务队列
-            # todo：改掉这种连接方式，否则后面扩展的时候，每增加一个队列/任务类型，都需要变动这里
-            self.normal_task_queue = ActiveMQQueue(
-                (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
-                settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
-                settings.ACTIVEMQ_QUEUES.get("task_normal")
-            )
-
-            self.chrome_task_queue = ActiveMQQueue(
-                (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
-                settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
-                settings.ACTIVEMQ_QUEUES.get("task_chrome")
-            )
-
-            self.result_queue = ActiveMQQueue(
-                (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
-                settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
-                settings.ACTIVEMQ_QUEUES.get("result_spider")
-            )
-
-            logger.info("Connect to remote ActiveMQ queue success!")
-            return True
-        except StompException:
-            exc_type, exc_value, exc_tb = sys.exc_info()
-            tbe = traceback.TracebackException(exc_type, exc_value, exc_tb)
-            full_err = ''.join(tbe.format())
-            logger.error("Error when connect to remote ActiveMQ queue! Full error below:\n{}".format(full_err))
-            logger.error("Maybe username/password invalid!")
-            return False
+        # todo: set ctrl+c signal
 
     def start(self) -> bool:
         """
@@ -93,10 +48,10 @@ class RedstoneSpiderApplication(object):
         :rtype: bool
         """
 
-        # 设置CTRL+C的信号
+        logger.info("Starting RedstoneSpiderApplication!")
 
         # 初始化爬虫线程池
-        self.normal_spider_engine = NormalSpiderEngine()
-        self.normal_spider_engine.start()
+        self.AppEngines.THREAD_FETCH_AGENT = ThreadFetchAgent()
+        self.AppEngines.THREAD_FETCH_AGENT.start()
 
         return True
