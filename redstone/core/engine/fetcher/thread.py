@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 
 """
-    redstone.core.engine.fetcher.fetcher
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    redstone.core.engine.fetcher.thread
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     fetcher engine
     负责从队列中接收线程任务，并执行对应的任务
@@ -15,7 +15,7 @@
 """
 import json
 import threading
-from typing import List
+from typing import List, TYPE_CHECKING
 
 import stomp
 
@@ -23,6 +23,9 @@ from redstone import settings
 from redstone.core.engine.base import MultiThreadBaseEngine
 from redstone.utils.activemq import ActiveMQQueue
 from redstone.utils.log import logger
+
+if TYPE_CHECKING:
+    from redstone.core.application import RedstoneSpiderApplication
 
 
 class AgentListener(stomp.ConnectionListener):
@@ -35,6 +38,9 @@ class AgentListener(stomp.ConnectionListener):
         super(AgentListener, self).__init__()
         self.current_name = current_name
         self.thread_context: ThreadFetchAgent = thread_context
+
+        # 获取spider loader
+        self.spider_loader = self.thread_context.app_context.AppEngines.SPIDER_LOADER
 
     def on_message(self, headers, body):
         """
@@ -56,9 +62,10 @@ class AgentListener(stomp.ConnectionListener):
 
         # 加载爬虫类
         # spider_cls = SpiderLoader.get_clz_by_name(spider_name)
+        spider_cls = self.spider_loader.load_class_by_name(spider_name)
         # spider_instance = spider_cls()
         # result = spider_instance.run()
-
+        # result_queue.put(result)
         # make_ack()
         return True
 
@@ -72,7 +79,7 @@ class ThreadFetchAgent(MultiThreadBaseEngine):
         super(ThreadFetchAgent, self).__init__()
         self.name = "ThreadFetcher"
 
-        self.app_context = app_context
+        self.app_context: RedstoneSpiderApplication = app_context
 
         self.task_queues: List[ActiveMQQueue] = None
 

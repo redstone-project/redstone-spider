@@ -12,9 +12,14 @@
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
 
+from . import SpiderBase
+from redstone.utils.log import logger
 
-class RSSSpider(object):
-    pass
+
+class RSSSpider(SpiderBase):
+
+    def run(self):
+        logger.info("RSS Spider running!23333")
 
 
 def get_class():
