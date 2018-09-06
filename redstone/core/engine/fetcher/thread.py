@@ -15,13 +15,15 @@
 """
 import json
 import threading
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Optional
 
 import stomp
 
 from redstone import settings
 from redstone.core.engine.base import MultiThreadBaseEngine
+from redstone.spiders import SpiderBase
 from redstone.utils.activemq import ActiveMQQueue
+from redstone.utils.ip import IPAddress
 from redstone.utils.log import logger
 
 if TYPE_CHECKING:
@@ -34,10 +36,18 @@ class AgentListener(stomp.ConnectionListener):
     异步接收消息，并且执行
     """
 
-    def __init__(self, current_name, thread_context):
+    def __init__(self, current_name, thread_context, current_idx, consumer_id):
         super(AgentListener, self).__init__()
         self.current_name = current_name
+
+        # 运行当前callback的线程上下文
         self.thread_context: ThreadFetchAgent = thread_context
+
+        # 当前线程的ID，用于到上下文中获取数据使用
+        self.current_idx = current_idx
+
+        # 消费者ID，对于同一个队列来讲，这个应该是唯一的
+        self.consumer_id = consumer_id
 
         # 获取spider loader
         self.spider_loader = self.thread_context.app_context.AppEngines.SPIDER_LOADER
@@ -50,27 +60,42 @@ class AgentListener(stomp.ConnectionListener):
         :return:
         """
 
-        message_id = headers["message-id"]
-        logger.debug("Receive message, id: {}, body: {}".format(message_id, body))
+        try:
+            message_id = headers["message-id"]
+            logger.debug("Receive message, id: {}, body: {}".format(message_id, body))
 
-        # 解析消息内容
-        message = json.loads(body)
-        feed_url = message["feed_url"]
-        feed_name = message["feed_name"]
-        feed_id = message["feed_id"]
-        spider_name = message["spider_name"]    # use this to load spider class
+            # 解析消息内容
+            message = json.loads(body)
+            feed_url = message["feed_url"]
+            feed_name = message["feed_name"]
+            feed_id = message["feed_id"]
+            spider_name = message["spider_name"]  # use this to load spider class
 
-        # 加载爬虫类
-        # spider_cls = SpiderLoader.get_clz_by_name(spider_name)
-        spider_cls = self.spider_loader.load_class_by_name(spider_name)
-        # spider_instance = spider_cls()
-        # result = spider_instance.run()
-        # result_queue.put(result)
-        # make_ack()
-        return True
+            # 加载爬虫类 并实例化
+            spider_cls: Optional[SpiderBase] = self.spider_loader.load_class_by_name(spider_name)
+            if spider_cls is None:
+                return False
+            # PyCharm并不能检测到我在实例化一个对象，它认为我在调用一个函数
+            spider_instance: SpiderBase = spider_cls()
+
+            # 设置爬虫运行所需要的数据
+            # spider_instance.set_params()
+
+            # 运行爬虫
+            spider_instance.run()
+
+            # 获取爬虫结果
+            result = spider_instance.get_result()
+
+            # result_queue.put(result)
+
+            return True
+        finally:
+            # 保证无论是否执行成功，都ACK消息
+            self.thread_context.task_queues[self.current_idx].make_ack(headers["message-id"], self.consumer_id)
 
     def on_error(self, headers, body):
-        pass
+        logger.error("Error on receive message from queue!")
 
 
 class ThreadFetchAgent(MultiThreadBaseEngine):
@@ -84,7 +109,7 @@ class ThreadFetchAgent(MultiThreadBaseEngine):
         self.task_queues: List[ActiveMQQueue] = None
 
     @staticmethod
-    def __get_queue():
+    def __get_queue(queue_name, consumer_id):
         """
         获取队列信息，并创建ActiveMQ队列对象
         :return:
@@ -93,25 +118,20 @@ class ThreadFetchAgent(MultiThreadBaseEngine):
             dict["task_queue"]
         :rtype: dict
         """
-        queue_name = settings.ACTIVEMQ_QUEUES.get("thread_task")
-        if not queue_name:
-            return {
-                "success": False,
-                "message": "Can't get queue name for 'thread_task' queue!",
-                "task_queue": None,
-            }
-
-        queue_name = "/queue/{}".format(queue_name)
-        task_queue = ActiveMQQueue(
-            (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT)),
-            settings.ACTIVEMQ_USERNAME, settings.ACTIVEMQ_PASSWORD,
-            queue_name
+        final_queue_name = "/queue/{}".format(queue_name)
+        host_info = (settings.ACTIVEMQ_HOST, int(settings.ACTIVEMQ_PORT))
+        _queue = ActiveMQQueue(
+            host_info,
+            settings.ACTIVEMQ_USERNAME,
+            settings.ACTIVEMQ_PASSWORD,
+            final_queue_name,
+            consumer_id
         )
 
         return {
             "success": True,
             "message": "connect success!",
-            "task_queue": task_queue,
+            "task_queue": _queue,
         }
 
     def stop(self):
@@ -128,15 +148,23 @@ class ThreadFetchAgent(MultiThreadBaseEngine):
         # 获取当前线程的序号
         current_idx = int(current_name.split("-")[0])
 
-        # 获取ActiveMQ队列对象
-        result = self.__get_queue()
+        # 生成当前的consumer id
+        # 规则："".join([当期机器的IP, "_", current_idx])
+        consumer_id = "{ip}__{idx}".format(ip=IPAddress.current_ip().replace(".", "_"), idx=current_idx)
+
+        # 获取Task ActiveMQ队列对象
+        task_queue_name = settings.ACTIVEMQ_QUEUES["thread_task"]
+        result_queue_name = settings.ACTIVEMQ_QUEUES["result_spider"]
+        result = self.__get_queue(task_queue_name, consumer_id)
         if not result["success"]:
             raise RuntimeError("Connect to thread task queue failed!")
 
         # 设置listener并且连接到ActiveMQ队列
         task_queue = result["task_queue"]
         self.task_queues[current_idx] = task_queue
-        self.task_queues[current_idx].set_listener("", AgentListener(current_name, self))
+        self.task_queues[current_idx].set_listener(
+            "", AgentListener(current_name, self, current_idx, consumer_id)
+        )
         self.task_queues[current_idx].connect()
 
         # 订阅到指定队列

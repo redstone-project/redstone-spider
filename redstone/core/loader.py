@@ -18,7 +18,7 @@ import hashlib
 
 import os
 import importlib
-from typing import Dict, Union, TYPE_CHECKING
+from typing import Dict, Union, TYPE_CHECKING, Optional
 
 from redstone import settings
 from redstone.core.engine.base import SingleThreadBaseEngine
@@ -143,9 +143,9 @@ class SpiderLoader(SingleThreadBaseEngine):
                     logger.error(result["message"])
 
             # for test, 如果要调试reload模块，只需要取消下面几行的注释即可
-            inst = self._cache["rss"][1].get_class()
-            inst = inst()
-            inst.run()
+            # inst = self._cache["rss"][1].get_class()
+            # inst = inst()
+            # inst.run()
 
         logger.info("{} end!".format(self.name))
 
@@ -156,7 +156,7 @@ class SpiderLoader(SingleThreadBaseEngine):
         logger.info("Receive reload signal!")
         self.ev.set()
 
-    def load_class_by_name(self, spider_name) -> Union[None, SpiderBase]:
+    def load_class_by_name(self, spider_name) -> Optional[SpiderBase]:
         logger.debug("Try to load spider: {}".format(spider_name))
 
         # 把爬虫名字转换成文件名，并提取pkg名
@@ -176,6 +176,6 @@ class SpiderLoader(SingleThreadBaseEngine):
         # 直接调用对应爬虫module模块的get_class()方法获取爬虫类
         try:
             return self._cache[pkg_name][1].get_class()
-        except AttributeError as e:
+        except AttributeError:
             logger.error("Spider doesn't have 'get_class()' method!")
             return None

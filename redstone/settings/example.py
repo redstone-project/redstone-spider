@@ -40,5 +40,5 @@ ACTIVEMQ_QUEUES = {
     "coroutine_task": "redstone.coroutine.task",
     "thread_task": "redstone.thread.task",
     # 返回爬虫结果的队列名称
-    "result_spider": "redstone.result.spider_result",
+    "spider_result": "redstone.result.spider_result",
 }
