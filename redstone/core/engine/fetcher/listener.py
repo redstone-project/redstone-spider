@@ -36,6 +36,11 @@ class FetcherListener(stomp.ConnectionListener):
         不停的从队列中获取消息，并且放到本地的buffer queue中
         只有当确实放到了buffer queue中之后，再回复ACK接收新消息
         """
+
+        # 检查线程的状态，如果线程已经结束，不再处理任何消息
+        if self.fetcher_thread_ctx.status != self.fetcher_thread_ctx.EngineStatus.STATUS_RUNNING:
+            return
+
         # 获取buffer queue
         redstone_app = self.fetcher_thread_ctx.app_context
         buffer_queue = redstone_app.AppEngines.WORKER_ENGINE.buffer_queue

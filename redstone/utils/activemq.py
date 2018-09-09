@@ -46,6 +46,9 @@ class ActiveMQQueue(object):
         cid = consumer_id if consumer_id else self.consumer_id
         self.queue.subscribe(self.queue_name, cid, "client", headers={"activemq.prefetchSize": 1})
 
+    def put(self, message):
+        return self.queue.send(body=message, destination="/queue/{}".format(self.queue_name))
+
     def make_ack(self, message_id, consumer_id=None):
         if not any([consumer_id, self.consumer_id]):
             raise RuntimeError("Need consumer id!")
