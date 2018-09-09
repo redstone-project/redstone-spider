@@ -29,6 +29,9 @@ LOG_PATH = os.path.join(BASE_DIR, "logs")
 # 爬虫加载设置
 SPIDER_HOT_LOAD_IDLE = 30
 
+# 爬虫工作线程数量
+SPIDER_POOL_SIZE = 32
+
 # 服务端队列信息设置
 ACTIVEMQ_HOST = "127.0.0.1"
 ACTIVEMQ_PORT = "61613"

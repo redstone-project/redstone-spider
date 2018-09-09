@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from .application import RedstoneSpiderApplication
+from redstone.application import RedstoneSpiderApplication
 
 
 # 全局的App变量

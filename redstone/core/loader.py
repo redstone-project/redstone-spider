@@ -160,7 +160,7 @@ class SpiderLoader(SingleThreadBaseEngine):
         logger.debug("Try to load spider: {}".format(spider_name))
 
         # 把爬虫名字转换成文件名，并提取pkg名
-        # ExampleSpider => example_spider => example_spider.py
+        # SpiderName: ExampleSpider => Pkg name: example_spider => Filename: example_spider.py
         pkg_name = [ch if ch.islower() else " " + ch for ch in spider_name]
         pkg_name = "".join(pkg_name).strip()
         pkg_name = pkg_name.replace(" ", "_")

@@ -20,7 +20,7 @@ import multiprocessing
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from redstone.core.application import RedstoneSpiderApplication
+    from redstone.application import RedstoneSpiderApplication
 
 
 class CommonBaseEngine(object, metaclass=abc.ABCMeta):

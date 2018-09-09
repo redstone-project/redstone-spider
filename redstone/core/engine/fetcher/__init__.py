@@ -12,5 +12,4 @@
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
 
-from .thread import ThreadFetchAgent
 from .fetcher import FetcherEngine

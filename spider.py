@@ -19,7 +19,7 @@ import time
 import traceback
 
 from redstone.core import data as gdata
-from redstone.core.application import RedstoneSpiderApplication
+from redstone.application import RedstoneSpiderApplication
 from redstone.utils.log import logger
 
 

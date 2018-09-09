@@ -95,7 +95,7 @@ class SenderEngine(SingleThreadBaseEngine):
         logger.info("{} start!".format(self.name))
 
         app_ctx = self.app_context
-        result_buffer_queue: queue.Queue = app_ctx.AppEngines.SPIDER_ENGINE.result_queue
+        result_buffer_queue: queue.Queue = app_ctx.BufferQueues.RESULT_BUFFER_QUEUE
 
         while self.status == self.EngineStatus.STATUS_RUNNING:
             try:

@@ -12,7 +12,8 @@
     :license:   GPL-3.0, see LICENSE for more details.
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
-
+import queue
+import threading
 import typing
 
 import stomp
@@ -30,6 +31,7 @@ class FetcherListener(stomp.ConnectionListener):
 
     def __init__(self, thread_ctx):
         self.fetcher_thread_ctx: FetcherEngine = thread_ctx
+        self.ev = threading.Event()
 
     def on_message(self, headers, body):
         """
@@ -43,7 +45,7 @@ class FetcherListener(stomp.ConnectionListener):
 
         # 获取buffer queue
         redstone_app = self.fetcher_thread_ctx.app_context
-        buffer_queue = redstone_app.AppEngines.WORKER_ENGINE.buffer_queue
+        buffer_queue = redstone_app.BufferQueues.TASK_BUFFER_QUEUE
 
         try:
             message_id = headers["message_id"]
@@ -51,8 +53,13 @@ class FetcherListener(stomp.ConnectionListener):
 
             # 直接把消息放到本地的buffer queue中
             # todo：考虑把消息封装到一个dataclass里，写的时候比较方便
-            buffer_queue.put(body)
-
+            while True:
+                try:
+                    buffer_queue.put_nowait(body)
+                    break
+                except queue.Full:
+                    self.ev.wait(1)
+                    continue
         finally:
             # 保证一定会发送ACK确认消息
             message_id = headers["message_id"]

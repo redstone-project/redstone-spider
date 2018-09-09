@@ -15,10 +15,13 @@
 
 from __future__ import annotations
 
-from ..utils.log import logger
-from ..utils.activemq import ActiveMQQueue
-from redstone.core.engine.fetcher import ThreadFetchAgent
+import queue
+
+from redstone import settings
+from redstone.utils.log import logger
+from redstone.utils.activemq import ActiveMQQueue
 from redstone.core.loader import SpiderLoader
+from redstone.core.engine.fetcher import FetcherEngine
 
 
 class RedstoneSpiderApplication(object):
@@ -28,11 +31,13 @@ class RedstoneSpiderApplication(object):
 
     # 内部类，存储所有的Engine
     class AppEngines:
-        # 基于线程的FetchAgent
-        THREAD_FETCH_AGENT: ThreadFetchAgent = None
-
+        WORKER_ENGINE: FetcherEngine = None
         # spider loader
         SPIDER_LOADER: SpiderLoader = None
+
+    class BufferQueues:
+        TASK_BUFFER_QUEUE: queue.Queue = None
+        RESULT_BUFFER_QUEUE: queue.Queue = None
 
     def exit_signal_func(self):
         pass
@@ -54,12 +59,17 @@ class RedstoneSpiderApplication(object):
 
         logger.info("Starting RedstoneSpiderApplication!")
 
+        # 初始化本地的buffer queue
+        self.BufferQueues.TASK_BUFFER_QUEUE = queue.Queue(maxsize=settings.SPIDER_POOL_SIZE)
+        self.BufferQueues.RESULT_BUFFER_QUEUE = queue.Queue()
+        logger.info("Initialize local buffer queue success!")
+
         # 初始化爬虫加载器
         self.AppEngines.SPIDER_LOADER = SpiderLoader()
         self.AppEngines.SPIDER_LOADER.start()
+        logger.info("Initialize spider_loader success!")
 
         # 初始化爬虫线程池
-        # self.AppEngines.THREAD_FETCH_AGENT = ThreadFetchAgent(app_context=self)
-        # self.AppEngines.THREAD_FETCH_AGENT.start()
+
 
         return True
