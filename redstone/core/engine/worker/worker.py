@@ -63,6 +63,7 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             feed_url = message["feed_url"]
             feed_name = message["feed_name"]
             feed_id = message["feed_id"]
+            feed_config = message["feed_config"]
             spider_name = message["spider_name"]  # use this to load spider class
             spider_config = message["spider_config"]    # 爬虫的额外设置，use_proxy
 
@@ -74,7 +75,7 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             spider_instance: SpiderBase = spider_cls()
 
             # 设置爬虫运行所需要的数据
-            spider_instance.set_params(url=feed_url)
+            spider_instance.set_params(url=feed_url, config=feed_config)
 
             # 运行爬虫
             spider_instance.run()
