@@ -33,6 +33,9 @@ class SpiderBase(object):
         # 存储待爬取的URL
         self._url: str = None
 
+        # 配置文件
+        self._config: Dict[str, str] = None
+
     def run(self):
         """
         引擎调用
@@ -45,6 +48,10 @@ class SpiderBase(object):
         引擎调用，获取爬虫的结果
         """
         return self._results
+
+    def set_params(self, url, config):
+        self._url = url
+        self._config = config
 
     def _push_result(self, result: Dict):
         """

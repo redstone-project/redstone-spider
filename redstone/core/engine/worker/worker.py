@@ -74,7 +74,7 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             spider_instance: SpiderBase = spider_cls()
 
             # 设置爬虫运行所需要的数据
-            # spider_instance.set_params(url=feed_url)
+            spider_instance.set_params(url=feed_url)
 
             # 运行爬虫
             spider_instance.run()

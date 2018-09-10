@@ -19,7 +19,7 @@ from redstone.utils.log import logger
 class RSSSpider(SpiderBase):
 
     def run(self):
-        logger.info("RSS Spider running!23333")
+        logger.info("RSS Spider running!")
 
 
 def get_class():
