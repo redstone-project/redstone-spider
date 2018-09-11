@@ -12,6 +12,8 @@
     :license:   GPL-3.0, see LICENSE for more details.
     :copyright: Copyright (c) 2017 lightless. All rights reserved
 """
+import sys
+import traceback
 import json
 import queue
 import threading
@@ -79,7 +81,15 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
 
             # 运行爬虫，这里同步等待爬虫结束
             logger.debug("Before spider run..")
-            spider_instance.run()
+            try:
+                spider_instance.run()
+            except Exception as e:
+                exc_type, exc_value, exc_tb = sys.exc_info()
+                tbe = traceback.TracebackException(exc_type, exc_value, exc_tb)
+                full_err = ''.join(tbe.format())
+                logger.fatal("Oops! Error when spider running! Error: {}".format(e))
+                logger.fatal("Full error below: \n{}".format(full_err))
+                continue
             logger.debug("After spider run..")
 
             # 获取爬虫结果
