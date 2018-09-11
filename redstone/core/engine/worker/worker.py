@@ -18,6 +18,7 @@ import threading
 from typing import TYPE_CHECKING, Optional
 
 from redstone.spiders import SpiderBase
+from redstone.utils.log import logger
 from ..base import MultiThreadBaseEngine
 
 
@@ -63,9 +64,8 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             feed_url = message["feed_url"]
             feed_name = message["feed_name"]
             feed_id = message["feed_id"]
-            feed_config = message["feed_config"]
+            feed_config = message["feed_config"]  # 该feed的额外设置，例如use_proxy等
             spider_name = message["spider_name"]  # use this to load spider class
-            spider_config = message["spider_config"]    # 爬虫的额外设置，use_proxy
 
             # 加载爬虫类 并实例化
             spider_cls: Optional[SpiderBase] = spider_loader.load_class_by_name(spider_name)
@@ -77,8 +77,10 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             # 设置爬虫运行所需要的数据
             spider_instance.set_params(url=feed_url, config=feed_config)
 
-            # 运行爬虫
+            # 运行爬虫，这里同步等待爬虫结束
+            logger.debug("Before spider run..")
             spider_instance.run()
+            logger.debug("After spider run..")
 
             # 获取爬虫结果
             result = spider_instance.get_result()

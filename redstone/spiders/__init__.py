@@ -2,9 +2,10 @@
 # -*- coding:utf-8 -*-
 
 """
+    redstone.spiders
+    ~~~~~~~~~~~~~~~~
 
-    ~~~~~~~~~~~~~~~~~~
-
+    爬虫的父类，所有的爬虫都要继承这个类
 
     :author:    lightless <root@lightless.me>
     :homepage:  None
@@ -15,6 +16,7 @@ from typing import List, Dict
 
 import requests
 
+from redstone import settings
 from redstone.utils.log import logger
 
 
@@ -34,6 +36,9 @@ class SpiderBase(object):
         self._url: str = None
 
         # 配置文件
+        # {
+        #   "use_proxy": True/False
+        # }
         self._config: Dict[str, str] = None
 
     def run(self):
@@ -78,7 +83,10 @@ class SpiderBase(object):
 
         try:
             # todo: add socks5 proxy support
-            resp = requests.get(target_url, timeout=(30, 30))
+            if self._config["use_proxy"]:
+                resp = requests.get(target_url, timeout=(30, 30), proxies=settings.SPIDER_PROXIES)
+            else:
+                resp = requests.get(target_url, timeout=(30, 30))
         except requests.exceptions.RequestException as e:
             ret_val["success"] = False
             ret_val["message"] = "Error when make requests. Error: {}".format(e)

@@ -32,6 +32,12 @@ SPIDER_HOT_LOAD_IDLE = 30
 # 爬虫工作线程数量
 SPIDER_POOL_SIZE = 32
 
+# socks5 代理信息
+SPIDER_PROXIES = {
+    'http': 'socks5://user:pass@host:port',
+    'https': 'socks5://user:pass@host:port'
+}
+
 # 服务端队列信息设置
 ACTIVEMQ_HOST = "127.0.0.1"
 ACTIVEMQ_PORT = "61613"
