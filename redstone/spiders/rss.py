@@ -56,7 +56,7 @@ class RSSSpider(SpiderBase):
             if not content:
                 content = "{title}<br><a href=\"{link}\">{title}</a>".format(title=title, link=link)
 
-            # 处理时区问题
+            # 匹配时间字符串
             raw_published_time = item["published"]
             fmt1 = "%a, %d %b %Y %H:%M:%S %z"
             fmt2 = "%a, %d %b %Y %H:%M:%S %Z"
@@ -72,8 +72,10 @@ class RSSSpider(SpiderBase):
                             raw_published_time))
                     st = time.localtime()
 
-            # 把struct_time转成timestamp
+            # 把struct_time转成timestamp，处理时区问题
             published_time = time.mktime(st)
+            published_time = \
+                published_time + 8 * 3600 if not st.tm_gmtoff else published_time + 8 * 3600 + abs(st.tm_gmtoff)
 
             # 拼装result
             result = {
