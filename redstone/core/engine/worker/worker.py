@@ -61,7 +61,22 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             except queue.Empty:
                 self.ev.wait(1)
                 continue
-
+            """
+            task = {
+                "feed_url": "url",
+                "feed_id": 123,
+                "feed_name": "name",
+                "feed_config": {
+                    "use_proxy": True,
+                    # ...other config
+                },
+                "spider_name": "SpiderName"
+            }
+            
+            SpiderName: ExampleSpider 
+                => Pkg name: example_spider 
+                => Filename: example_spider.py
+            """
             task = json.loads(message)
             feed_url = message["feed_url"]
             feed_name = message["feed_name"]
