@@ -28,7 +28,10 @@ class RSSSpider(SpiderBase):
         # 获取RSS页面的内容
         resp_result = self._get_page_content()
         if not resp_result["success"]:
-            logger.error("Can't fetch target URL, error msg: {}".format(resp_result["message"]))
+            error_message = "Can't fetch target URL's content, error msg: {}".format(resp_result["message"])
+            logger.error(error_message)
+            self.spider_result.success = False
+            self.spider_result.error_message = error_message
             return False
 
         # 解析RSS
@@ -87,7 +90,9 @@ class RSSSpider(SpiderBase):
             }
             self._push_result(result)
 
+        self.spider_result.results = True
         logger.info("Rss spider done.")
+        return True
 
 
 def get_class():

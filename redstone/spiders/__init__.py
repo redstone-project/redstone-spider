@@ -30,7 +30,7 @@ class SpiderBase(object):
         super(SpiderBase, self).__init__()
 
         # 存储结果的list
-        self._results: List[Dict[str, str]] = []
+        # self._results: List[Dict[str, str]] = []
 
         # 存储待爬取的URL
         self._url: str = None
@@ -40,6 +40,25 @@ class SpiderBase(object):
         #   "use_proxy": True/False
         # }
         self._config: Dict[str, str] = None
+
+        # 存储爬虫结果的类
+        self.spider_result = {
+            # 爬虫是否运行成功
+            "success": False,
+
+            # 错误消息，如果正常运行，则为空
+            "error_message": "",
+
+            # 错误stack消息，如果正常运行，则为空
+            "error_stack_info": "",
+
+            # items列表
+            "results": [],  # type: List[Dict[str, str]]
+
+            # feed源相关的内容
+            "feed_id": 0,
+            "feed_name": "",
+        }
 
     def run(self):
         """
@@ -52,7 +71,7 @@ class SpiderBase(object):
         """
         引擎调用，获取爬虫的结果
         """
-        return self._results
+        return self.spider_result
 
     def set_params(self, url, config):
         self._url = url
@@ -64,7 +83,7 @@ class SpiderBase(object):
         将一个爬取结果放到结果集中
         :param result: 爬取的结果item
         """
-        self._results.append(result)
+        self.spider_result["results"].append(result)
 
     def _get_page_content(self, url=None):
         """

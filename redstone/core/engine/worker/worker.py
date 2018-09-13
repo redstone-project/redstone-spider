@@ -78,16 +78,17 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
                 => Filename: example_spider.py
             """
             task = json.loads(message)
-            feed_url = message["feed_url"]
-            feed_name = message["feed_name"]
-            feed_id = message["feed_id"]
-            feed_config = message["feed_config"]  # 该feed的额外设置，例如use_proxy等
-            spider_name = message["spider_name"]  # use this to load spider class
+            feed_url = task["feed_url"]
+            feed_name = task["feed_name"]
+            feed_id = task["feed_id"]
+            feed_config = task["feed_config"]  # 该feed的额外设置，例如use_proxy等
+            spider_name = task["spider_name"]  # use this to load spider class
 
             # 加载爬虫类 并实例化
             spider_cls: Optional[SpiderBase] = spider_loader.load_class_by_name(spider_name)
             if spider_cls is None:
-                return False
+                # TODO: send fail result back
+                continue
             # PyCharm并不能检测到我在实例化一个对象，它认为我在调用一个函数
             spider_instance: SpiderBase = spider_cls()
 
@@ -104,11 +105,14 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
                 full_err = ''.join(tbe.format())
                 logger.fatal("Oops! Error when spider running! Error: {}".format(e))
                 logger.fatal("Full error below: \n{}".format(full_err))
-                continue
+
             logger.debug("After spider run..")
 
             # 获取爬虫结果
-            result = spider_instance.get_result()
+            spider_result = spider_instance.get_result()
+            # 设置feed源信息
+            spider_result.feed_name = feed_name
+            spider_result.feed_id = feed_id
 
             # 基本上不会满，直接put即可
-            result_queue.put(result)
+            result_queue.put(json.dumps(spider_result))
