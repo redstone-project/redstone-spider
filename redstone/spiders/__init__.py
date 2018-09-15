@@ -54,10 +54,6 @@ class SpiderBase(object):
 
             # items列表
             "results": [],  # type: List[Dict[str, str]]
-
-            # feed源相关的内容
-            "feed_id": 0,
-            "feed_name": "",
         }
 
     def run(self):

@@ -111,8 +111,13 @@ class SpiderWorkerEngine(MultiThreadBaseEngine):
             # 获取爬虫结果
             spider_result = spider_instance.get_result()
             # 设置feed源信息
-            spider_result.feed_name = feed_name
-            spider_result.feed_id = feed_id
+            spider_result = {
+                "spider_result": spider_result,
+                "feed_id": feed_id,
+                "feed_name": feed_name
+            }
+            # spider_result.feed_name = feed_name
+            # spider_result.feed_id = feed_id
 
             # 基本上不会满，直接put即可
             result_queue.put(json.dumps(spider_result))
