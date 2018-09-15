@@ -1,5 +1,4 @@
 ## 1. 下发任务的格式
-
 ```python
 task = {
     "feed_url": "url",
@@ -14,7 +13,6 @@ task = {
 ```
 
 ## 2. 回复结果的格式
-
 ```python
 spider_result = {
     "spider_result": {
